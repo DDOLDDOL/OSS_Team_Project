@@ -53,8 +53,6 @@
         android:padding="20dp"
         android:text = "강우량(mm)           : "
         android:textStyle="bold"
-
-
         />
 
     <TextView
