@@ -40,7 +40,7 @@
         />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/button1"
         android:background="@drawable/button_border"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
@@ -51,6 +51,7 @@
         android:layout_height="0dp"
         android:bottomLeftRadius="100dp"
         android:text="Place 1"
+        android:onClick="onClick"
         />
 
     <Button
@@ -64,6 +65,7 @@
         android:layout_weight="1"
         android:layout_height="0dp"
         android:text="Place 2"
+        android:onClick="onClick"
         />
 
     <Button
@@ -77,6 +79,7 @@
         android:layout_weight="1"
         android:layout_height="0dp"
         android:text="Place 3"
+        android:onClick="onClick"
         />
 
     <Button
@@ -90,19 +93,6 @@
         android:layout_weight="1"
         android:layout_height="0dp"
         android:text="Place 4"
+        android:onClick="onClick"
         />
-
-    <Button
-        android:id="@+id/button5"
-        android:background="@drawable/button_border"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="20dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
-        android:layout_width="match_parent"
-        android:layout_weight="1"
-        android:layout_height="0dp"
-        android:text="Place 5"
-        />
-
 </LinearLayout>
