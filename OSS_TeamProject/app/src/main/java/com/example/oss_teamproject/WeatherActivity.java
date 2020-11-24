@@ -9,10 +9,13 @@ import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.util.Pair;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.w3c.dom.Document;
@@ -29,18 +32,20 @@ import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 public class WeatherActivity extends AppCompatActivity {
-    TextView temperature, rain_probability, rain_amount, wind;
+    TextView temperature, rain_probability, rain_amount, wind, sky_status;
+    ImageView status_weather;
 
-    SQLiteDatabase db;
     Handler handler=new Handler();
     Intent intent;
 
+    ArrayList<Pair<String, Pair<String, String>>> place_list;
     final String key="u8A%2B5H78lLJAQF4izW49VG32bMUGmjryumhVXumYzQrSKRHAaAraWH%2BiHa9TbwCgWZvq9zv%2FfqS2IoPAFQ57HQ%3D%3D";
     String url="http://apis.data.go.kr/1360000/VilageFcstInfoService/getVilageFcst";
     String gu, dong;
@@ -57,9 +62,11 @@ public class WeatherActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_weather);
 
-        setInfo();
-        setAllView();
+        getInfoFromIntent();
+        initializeElement();
         setDate();
+        temperature.setText(dong);
+        /*
         setPage("20201125", "2010");
 
         url+="?serviceKey="+key;
@@ -70,27 +77,30 @@ public class WeatherActivity extends AppCompatActivity {
         url+="&nx="+nx;
         url+="&ny="+ny;
 
-        DBHelper helper=new DBHelper(this);
-        db=helper.getReadableDatabase();
-
-        try {
-            Cursor c = db.rawQuery("select field5 from 격자csv where field4 == \"종로구\"", null);
-            c.moveToFirst();
-            String str="1";
-            while (c.moveToNext())
-                str+=c.getString(c.getColumnIndex("field5"));
-            txt.setText(str);
-        }
-        catch(Exception e) {txt.setText(e.toString());}
-
         new Thread(new MyThread()).start();
+
+         */
     }
 
-    public void setAllView() {
+    public void getInfoFromIntent() {
+        intent = getIntent();
+
+        gu=intent.getStringExtra("gu");
+        dong=intent.getStringExtra("dong");
+        target_date=intent.getStringExtra("date");
+        target_time=intent.getStringExtra("time");
+        nx=intent.getIntExtra("nx", 55);
+        ny=intent.getIntExtra("ny", 127);
+        place_list=(ArrayList<Pair<String, Pair<String, String>>>)intent.getSerializableExtra("place_list");
+    }
+
+
+    public void initializeElement() {
         temperature=findViewById(R.id.temperature);
         rain_probability=findViewById(R.id.rain_probability);
         rain_amount=findViewById(R.id.rain_amount);
         wind=findViewById(R.id.wind);
+        status_weather=findViewById(R.id.status_weather);
     }
 
     public void setDate() {
@@ -104,19 +114,6 @@ public class WeatherActivity extends AppCompatActivity {
         page=Integer.parseInt(d)-Integer.parseInt(date_today);
         del=Integer.parseInt(t)/300;
     }
-
-    public void setInfo() {
-        intent = getIntent();
-        gu=intent.getStringExtra("gu");
-        dong=intent.getStringExtra("dong");
-        target_date=intent.getStringExtra("date");
-        target_time=intent.getStringExtra("time");
-        nx=intent.getIntExtra("nx", 55);
-        ny=intent.getIntExtra("ny", 127);
-
-
-    }
-
     public String getDataFromHTTP(String targetURL) {
         String document = "go";
 
@@ -208,15 +205,15 @@ public class WeatherActivity extends AppCompatActivity {
             switch (sky) {
                 case "1":
                     // 맑음
-
+                    status_weather.setImageResource(R.drawable.sunny);
                     break;
                 case "3":
                     // 구름많음
-
+                    status_weather.setImageResource(R.drawable.sun_cloud);
                     break;
                 case "4":
                     //흐림
-
+                    status_weather.setImageResource(R.drawable.cloudy);
                     break;
             }
         }
@@ -226,59 +223,6 @@ public class WeatherActivity extends AppCompatActivity {
         @Override
         public void run() {
             handler.post(new UIUpdate(getDataFromHTTP(url)));
-        }
-    }
-
-    class DBHelper extends SQLiteOpenHelper {
-        private String DB_PATH = "";
-        private final String DB_NAME = "db1.db";
-
-        public DBHelper(@Nullable Context context) {
-            super(context, "db1.db", null, 1);
-
-            DB_PATH += "/data/data/" + context.getPackageName() + "/databases/";
-            this.setDB(context);
-        }
-
-        @Override
-        public void onCreate(SQLiteDatabase sqLiteDatabase) {
-        }
-
-        @Override
-        public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-
-        }
-
-        public void setDB(Context ctx) {
-            File folder = new File(DB_PATH);
-            if (!folder.exists())
-                folder.mkdirs();
-
-            AssetManager assetManager = ctx.getResources().getAssets();
-            File outfile = new File(DB_PATH+DB_NAME);
-
-            InputStream is = null;
-            FileOutputStream fo = null;
-            long filesize = 0;
-
-            try {
-                is = assetManager.open("db1.db", AssetManager.ACCESS_BUFFER);
-                filesize = is.available();
-
-                if (outfile.length() <= 0) {
-                    byte[] tempdata = new byte[(int) filesize];
-                    is.read(tempdata);
-                    is.close();
-                    txt.setText(tempdata.length+"g");
-                    outfile.createNewFile();
-                    fo = new FileOutputStream(outfile);
-                    fo.write(tempdata);
-                    fo.close();
-                }
-            }
-            catch (IOException e) { txt.setText("error");}
-
-            //query
         }
     }
 }
