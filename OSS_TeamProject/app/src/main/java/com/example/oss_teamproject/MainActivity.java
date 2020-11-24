@@ -12,7 +12,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-// 윤철
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     TextView timepicker, locpicker;
     Button btn_ok;
@@ -28,11 +27,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void setAllView() {
-        timepicker=findViewById(R.id.timepicker);
-        locpicker=findViewById(R.id.locpicker);
-
-        btn_ok=findViewById(R.id.btn_ok);
-        btn_ok.setOnClickListener(this);
     }
 
     @Override

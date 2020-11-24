@@ -4,7 +4,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 
-// 재진
 public class RecommendActivity extends AppCompatActivity {
 
     @Override

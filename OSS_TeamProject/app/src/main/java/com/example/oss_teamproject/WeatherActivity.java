@@ -3,18 +3,39 @@ package com.example.oss_teamproject;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-// 명헌
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 public class WeatherActivity extends AppCompatActivity {
+    final String url="http://apis.data.go.kr/1360000/VilageFcstInfoService/getVilageFcst";
+    final String key="u8A%2B5H78lLJAQF4izW49VG32bMUGmjryumhVXumYzQrSKRHAaAraWH%2BiHa9TbwCgWZvq9zv%2FfqS2IoPAFQ57HQ%3D%3D";
+
+    Handler handler=new Handler();
+    String date_today;
+    int page;
+    int del;
+    int nx;
+    int ny;
+
     String w_url, page_source;
     TextView txt_loc;
 
@@ -23,56 +44,116 @@ public class WeatherActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_weather);
 
-        txt_loc=findViewById(R.id.txt_loc);
-        Intent intent=getIntent();
-        txt_loc.setText(intent.getStringExtra("gu")+" "+intent.getStringExtra("dong"));
+        Intent intent = getIntent();
+        String str=intent.getStringExtra("gu") + " " + intent.getStringExtra("dong");
 
-        /*
-        w_url="http://apis.data.go.kr/1360000/VilageFcstInfoService/getUltraSrtNcst?serviceKey=u8A%2B5H78lLJAQF4izW49VG32bMUGmjryumhVXumYzQrSKRHAaAraWH%2BiHa9TbwCgWZvq9zv%2FfqS2IoPAFQ57HQ%3D%3D&numOfRows=10&pageNo=1&base_date=20201006&base_time=0600&nx=55&ny=127";
-        page_source=connectURL(w_url);
-         */
+        //new Thread(new MyThread()).start();
     }
-
-    public String connectURL(String targetURL) {
-        String document=null;
+    public String getDataFromHTTP(String targetURL) {
+        String document = "go";
 
         try {
-            URL url = new URL(targetURL);
-            HttpURLConnection httpConnect = (HttpURLConnection) url.openConnection();
+            URL url_address = new URL(targetURL);
+            HttpURLConnection httpConnect = (HttpURLConnection) url_address.openConnection();
 
             httpConnect.setRequestMethod("GET");
             httpConnect.setRequestProperty("Content-type", "application/xml");
 
             int responseCode = httpConnect.getResponseCode();
-            BufferedReader buffRead;
 
-            //응답 코드를 분석, 정상적인 연결인지 확인하고 정상 연결 여부에 따라 스트림 설정
             if (responseCode == 200) {
-                buffRead = new BufferedReader(new InputStreamReader(httpConnect.getInputStream()));
-                System.out.println("[!] 응답 코드 200. 정상적으로 연결되었습니다.");
-            } else if (responseCode > 200 && responseCode < 400) {
-                buffRead = new BufferedReader(new InputStreamReader(httpConnect.getErrorStream()));
-                System.out.println("[!] 응답 코드 " + responseCode + ". 연결에는 성공했으나 정상 연결이 아닙니다.");
-            } else {
-                buffRead = new BufferedReader(new InputStreamReader(httpConnect.getErrorStream()));
-                System.out.println("[!] 응답 코드 " + responseCode + ". 정상 연결에 성공하지 못했습니다.");
+                BufferedReader buffRead = new BufferedReader(new InputStreamReader(httpConnect.getInputStream()));
+
+                //결과를 읽어 result에 저장
+                StringBuffer result = new StringBuffer();
+                String line;
+
+                while ((line = buffRead.readLine()) != null) {
+                    result.append(line);
+                }
+
+                buffRead.close();
+                httpConnect.disconnect();
+                document = result.toString();
+
+                Log.e("doc", document);
             }
-
-            StringBuffer result = new StringBuffer();
-            String line;
-
-            while ((line = buffRead.readLine()) != null) {
-                result.append(line);
-            }
-
-            //연결 종료 및 result 출력
-            buffRead.close();
-            httpConnect.disconnect();
-            System.out.println(result);
+            else
+                Log.e("Fatal", "Wrong HTTP Connection");
         }
         catch (Exception e) {
-            txt_loc.setText("error");
+            return "error1";
         }
-        return "succeed";
+
+        return document;
+    }
+
+    public void setDate() {
+        long now = System.currentTimeMillis();
+        Date date = new Date(now);
+        SimpleDateFormat sdfNow = new SimpleDateFormat("yyyyMMdd");
+        date_today = String.valueOf(Integer.parseInt(sdfNow.format(date))-1);
+    }
+
+    public void setPage(String d, String t) {
+        page=Integer.parseInt(d)-Integer.parseInt(date_today);
+        del=Integer.parseInt(t)/300;
+    }
+    class UIUpdate implements Runnable {
+        String result=url+"\n";
+
+        public UIUpdate(String result) {
+            try {
+                String res="";
+                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                factory.setIgnoringElementContentWhitespace(true);
+                DocumentBuilder builder = factory.newDocumentBuilder();
+                Document doc = builder.parse(new InputSource(new StringReader(result)));
+
+                NodeList nodeList=doc.getElementsByTagName("item");
+                for(int idx=0; idx<nodeList.getLength(); idx++) {
+                    String str=nodeList.item(idx).getChildNodes().item(2).getTextContent();
+                    String time_part=nodeList.item(idx).getChildNodes().item(4).getTextContent();
+
+                    if(Integer.parseInt(time_part) == del * 300) {
+                        switch (str) {
+                            case "POP":
+                                this.result += "강우 확률: " + nodeList.item(idx).getChildNodes().item(5).getTextContent() + "\n";
+                                break;
+                            case "R06":
+                                this.result += "강수량: " + nodeList.item(idx).getChildNodes().item(5).getTextContent() + "\n";
+                                break;
+                            case "T3H":
+                                this.result += "기온: " + nodeList.item(idx).getChildNodes().item(5).getTextContent() + "\n";
+                                break;
+                            case "SKY":
+                                this.result += "하늘 상태: " + nodeList.item(idx).getChildNodes().item(5).getTextContent() + "\n";
+                                break;
+                            case "WSD":
+                                this.result += "\n";
+                                break;
+                        }
+                    }
+                }
+
+                this.result+="\n"+res;
+            }
+            catch (Exception e){
+                this.result=e.getMessage();
+                Log.e("parseError", e.getMessage());
+            }
+        }
+
+        @Override
+        public void run() {
+            txt.setText(result);
+        }
+    }
+
+    class MyThread implements Runnable {
+        @Override
+        public void run() {
+            handler.post(new UIUpdate(getDataFromHTTP(url)));
+        }
     }
 }
