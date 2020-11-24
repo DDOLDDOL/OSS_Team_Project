@@ -26,29 +26,71 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 public class WeatherActivity extends AppCompatActivity {
-    final String url="http://apis.data.go.kr/1360000/VilageFcstInfoService/getVilageFcst";
-    final String key="u8A%2B5H78lLJAQF4izW49VG32bMUGmjryumhVXumYzQrSKRHAaAraWH%2BiHa9TbwCgWZvq9zv%2FfqS2IoPAFQ57HQ%3D%3D";
-
+    TextView temperature, rain_probability, rain_amount, wind;
     Handler handler=new Handler();
+    Intent intent;
+
+    final String key="u8A%2B5H78lLJAQF4izW49VG32bMUGmjryumhVXumYzQrSKRHAaAraWH%2BiHa9TbwCgWZvq9zv%2FfqS2IoPAFQ57HQ%3D%3D";
+    String url="http://apis.data.go.kr/1360000/VilageFcstInfoService/getVilageFcst";
+    String gu, dong;
+    String target_date, target_time;
+
     String date_today;
     int page;
     int del;
     int nx;
     int ny;
 
-    String w_url, page_source;
-    TextView txt_loc;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_weather);
 
-        Intent intent = getIntent();
-        String str=intent.getStringExtra("gu") + " " + intent.getStringExtra("dong");
+        getIntentData();
+        setAllView();
+        setDate();
+        setPage("20201125", "2010");
 
-        //new Thread(new MyThread()).start();
+        url+="?serviceKey="+key;
+        url+="&numOfRows=82";
+        url+="&pageNo="+page;
+        url+="&base_date="+date_today;
+        url+="&base_time=2030";
+        url+="&nx="+nx;
+        url+="&ny="+ny;
+
+        new Thread(new MyThread()).start();
     }
+
+    public void setAllView() {
+        temperature=findViewById(R.id.temperature);
+        rain_probability=findViewById(R.id.rain_probability);
+        rain_amount=findViewById(R.id.rain_amount);
+        wind=findViewById(R.id.wind);
+    }
+
+    public void setDate() {
+        long now = System.currentTimeMillis();
+        Date date = new Date(now);
+        SimpleDateFormat sdfNow = new SimpleDateFormat("yyyyMMdd");
+        date_today = String.valueOf(Integer.parseInt(sdfNow.format(date))-1);
+    }
+
+    public void setPage(String d, String t) {
+        page=Integer.parseInt(d)-Integer.parseInt(date_today);
+        del=Integer.parseInt(t)/300;
+    }
+
+    public void getIntentData() {
+        intent = getIntent();
+        gu=intent.getStringExtra("gu");
+        dong=intent.getStringExtra("dong");
+        target_date=intent.getStringExtra("date");
+        target_time=intent.getStringExtra("time");
+        nx=intent.getIntExtra("nx", 55);
+        ny=intent.getIntExtra("ny", 127);
+    }
+
     public String getDataFromHTTP(String targetURL) {
         String document = "go";
 
@@ -88,19 +130,8 @@ public class WeatherActivity extends AppCompatActivity {
         return document;
     }
 
-    public void setDate() {
-        long now = System.currentTimeMillis();
-        Date date = new Date(now);
-        SimpleDateFormat sdfNow = new SimpleDateFormat("yyyyMMdd");
-        date_today = String.valueOf(Integer.parseInt(sdfNow.format(date))-1);
-    }
-
-    public void setPage(String d, String t) {
-        page=Integer.parseInt(d)-Integer.parseInt(date_today);
-        del=Integer.parseInt(t)/300;
-    }
     class UIUpdate implements Runnable {
-        String result=url+"\n";
+        String tem, r_pro, r_amo, win;
 
         public UIUpdate(String result) {
             try {
@@ -118,19 +149,19 @@ public class WeatherActivity extends AppCompatActivity {
                     if(Integer.parseInt(time_part) == del * 300) {
                         switch (str) {
                             case "POP":
-                                this.result += "강우 확률: " + nodeList.item(idx).getChildNodes().item(5).getTextContent() + "\n";
+                                this.r_pro = nodeList.item(idx).getChildNodes().item(5).getTextContent();
                                 break;
                             case "R06":
-                                this.result += "강수량: " + nodeList.item(idx).getChildNodes().item(5).getTextContent() + "\n";
+                                this.r_amo = nodeList.item(idx).getChildNodes().item(5).getTextContent();
                                 break;
                             case "T3H":
-                                this.result += "기온: " + nodeList.item(idx).getChildNodes().item(5).getTextContent() + "\n";
+                                this.tem = nodeList.item(idx).getChildNodes().item(5).getTextContent();
                                 break;
                             case "SKY":
-                                this.result += "하늘 상태: " + nodeList.item(idx).getChildNodes().item(5).getTextContent() + "\n";
+                                this. = nodeList.item(idx).getChildNodes().item(5).getTextContent();
                                 break;
                             case "WSD":
-                                this.result += "\n";
+                                this.win = nodeList.item(idx).getChildNodes().item(5).getTextContent();
                                 break;
                         }
                     }
