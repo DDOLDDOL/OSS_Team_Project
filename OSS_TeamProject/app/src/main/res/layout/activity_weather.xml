@@ -76,9 +76,10 @@
         android:text="추천장소 보러가기"
         android:textStyle="bold"
         android:textSize="25dp"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="40dp"
         android:padding="20dp"
         android:layout_gravity="center_horizontal"
+        android:enabled="false"
         android:onClick="recomClick"
         />
 

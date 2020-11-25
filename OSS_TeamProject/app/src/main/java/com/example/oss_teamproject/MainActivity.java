@@ -69,8 +69,9 @@ public class MainActivity extends AppCompatActivity {
                     if(dayOfMonth<10)
                         date+="0";
                     date+=String.valueOf(dayOfMonth);
+                    btn_set_time.setText(monthOfYear);
                 }
-            }, 2020, 1, 1);
+            }, 2020, 11, 1);
 
             d_dialog.show();
 
@@ -90,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
                     btn_set_time.setTextSize(40);
                     btn_set_time.setText(hourOfDay+":"+minute);
                 }
-            }, 8, 10, true);
+            }, 12, 00, true);
 
             t_dialog.show();
         }

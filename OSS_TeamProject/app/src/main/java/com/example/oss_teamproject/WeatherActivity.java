@@ -73,7 +73,16 @@ public class WeatherActivity extends AppCompatActivity {
         url += "&nx=" + nx;
         url += "&ny=" + ny;
 
-        new Thread(new MyThread()).start();
+        try {
+            Thread http_thread = new Thread(new MyThread());
+            http_thread.start();
+      //      http_thread.join();
+        }
+        catch(Exception e) {
+            Log.e("thr_err", e.toString());
+        }
+
+        recommend_place.setEnabled(true);
     }
 
     public void getInfoFromIntent() {
@@ -98,8 +107,9 @@ public class WeatherActivity extends AppCompatActivity {
         txt_weather_main=findViewById(R.id.txt_weather_main);
 
         status_weather=findViewById(R.id.status_weather);
+        recommend_place=findViewById(R.id.recommend_place);
 
-        txt_weather_main.setText("현재 " + dong + "의 날씨 정보"+page);
+        txt_weather_main.setText(gu + dong + "의 날씨 정보");
     }
 
     public void setDate() {
@@ -125,8 +135,6 @@ public class WeatherActivity extends AppCompatActivity {
             httpConnect.setRequestProperty("Content-type", "application/xml");
 
             int responseCode = httpConnect.getResponseCode();
-
-            Log.e("abc123", "abc12345");
 
             if (responseCode == 200) {
                 BufferedReader buffRead = new BufferedReader(new InputStreamReader(httpConnect.getInputStream()));
@@ -164,6 +172,7 @@ public class WeatherActivity extends AppCompatActivity {
 
     class UIUpdate implements Runnable {
         String tem, r_pro, r_amo, win, sky;
+        String weather;
 
         public UIUpdate(String result) {
             try {
@@ -223,6 +232,17 @@ public class WeatherActivity extends AppCompatActivity {
                     status_weather.setImageResource(R.drawable.cloudy);
                     break;
             }
+
+            if(Integer.parseInt(r_pro) >= 60 && Double.parseDouble(r_amo) >= 0.5) {
+                status_weather.setImageResource(R.drawable.rainy);
+                weather = "r";
+            }
+            else
+                weather = "s";
+        }
+
+        public String getWeather() {
+            return weather;
         }
     }
     class MyThread implements Runnable {
