@@ -33,10 +33,9 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
     Button btn_set_time, btn_set_place, btn_ok;
 
-    SQLiteDatabase db;
+    public static SQLiteDatabase db;
     Intent intent;
 
-    ArrayList<Pair<String, Pair<String, String>>> place_list;
     String gu="null", dong="null";
     String date="", time="";
 
@@ -51,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
     public void initializeElement() {
         DBHelper helper=new DBHelper(this);
         db=helper.getReadableDatabase();
-        place_list=new ArrayList<>();
 
         btn_set_time=findViewById(R.id.btn_set_time);
         btn_set_place=findViewById(R.id.btn_set_place);
@@ -95,39 +93,27 @@ public class MainActivity extends AppCompatActivity {
             }, 8, 10, true);
 
             t_dialog.show();
-            btn_set_time.setText(time);
         }
         else if(view==btn_set_place) {
             intent=new Intent(this, LocActivity.class);
             startActivityForResult(intent, 10);
         }
         else if(view==btn_ok) {
-            String weahter, name, url;
-            if(time!="" && dong!="null") {
-                try {
-                    Cursor name_cur = db.rawQuery("select name from \"동네csv_com\" where gu==\""+gu+"\" and dong==\""+dong+"\"", null);
-                    name_cur.moveToFirst();
-                    Cursor weather_cur = db.rawQuery("select weather from \"동네csv_com\" where gu==\""+gu+"\" and dong==\""+dong+"\"", null);
-                    weather_cur.moveToFirst();
-                    Cursor url_cur = db.rawQuery("select url from \"동네csv_com\" where gu==\""+gu+"\" and dong==\""+dong+"\"", null);
-                    url_cur.moveToFirst();
-
-                    while (weather_cur.moveToNext() && name_cur.moveToNext() && url_cur.moveToNext()) {
-                        weahter = weather_cur.getString(weather_cur.getColumnIndex("name"));
-                        name = name_cur.getString(name_cur.getColumnIndex("name"));
-                        url = url_cur.getString(url_cur.getColumnIndex("name"));
-
-                        place_list.add(new Pair(weahter, new Pair(name, url)));
-                    }
-                }
-                catch(Exception e) { Log.e("dbError", e.getMessage()); }
-
+            if (time != "" && dong != "null") {
                 intent = new Intent(this, WeatherActivity.class);
+
                 intent.putExtra("gu", gu);
                 intent.putExtra("dong", dong);
                 intent.putExtra("date", date);
                 intent.putExtra("time", time);
-                intent.putExtra("place_list", place_list);
+
+                Cursor n_cur=db.rawQuery(
+                        "select distinct nx, ny from 동네csv_com where gu==\""+gu+"\" and dong==\""+dong+"\"", null);
+                n_cur.moveToFirst();
+
+                intent.putExtra("nx", n_cur.getString(n_cur.getColumnIndex("nx")));
+                intent.putExtra("ny", n_cur.getString(n_cur.getColumnIndex("ny")));
+
                 startActivity(intent);
             }
         }

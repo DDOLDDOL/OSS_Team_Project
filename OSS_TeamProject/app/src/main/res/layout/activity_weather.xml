@@ -9,16 +9,14 @@
     tools:context=".MainActivity">
 
     <TextView
+        android:id="@+id/txt_weather_main"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="35dp"
         android:padding="20dp"
-
-        android:text = "현재 XXX구의 날씨 정보"
+        android:text = "null"
         android:gravity="center_horizontal"
         android:textStyle="italic|bold"
-
-
         />
 
     <TextView
@@ -27,10 +25,8 @@
         android:layout_height="wrap_content"
         android:textSize="20dp"
         android:padding="20dp"
-        android:text = "온도(℃)           : "
+        android:text = "기온(℃)           : "
         android:textStyle="bold"
-
-
         />
 
     <TextView
@@ -39,10 +35,8 @@
         android:layout_height="wrap_content"
         android:textSize="20dp"
         android:padding="20dp"
-        android:text = "강수확률(%)     : "
+        android:text = "강우 확률(%)     : "
         android:textStyle="bold"
-
-
         />
 
     <TextView
@@ -51,7 +45,7 @@
         android:layout_height="wrap_content"
         android:textSize="20dp"
         android:padding="20dp"
-        android:text = "강우량(mm)           : "
+        android:text = "강수량(mm)           : "
         android:textStyle="bold"
         />
 
@@ -63,14 +57,13 @@
         android:padding="20dp"
         android:text = "바람(m/s)         : "
         android:textStyle="bold"
-
-
         />
 
     <ImageView
         android:id="@+id/status_weather"
         android:layout_width="300dp"
         android:layout_height="200dp"
+        android:layout_marginTop="20dp"
         android:src="@drawable/cloudy"
         android:layout_gravity="center_horizontal"
 
@@ -83,10 +76,10 @@
         android:text="추천장소 보러가기"
         android:textStyle="bold"
         android:textSize="25dp"
+        android:layout_marginTop="80dp"
         android:padding="20dp"
         android:layout_gravity="center_horizontal"
-
-
+        android:onClick="recomClick"
         />
 
 </LinearLayout>

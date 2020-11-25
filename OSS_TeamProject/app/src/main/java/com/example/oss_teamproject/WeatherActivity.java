@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.util.Pair;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -39,23 +40,22 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 public class WeatherActivity extends AppCompatActivity {
-    TextView temperature, rain_probability, rain_amount, wind, sky_status;
+    TextView temperature, rain_probability, rain_amount, wind, txt_weather_main;
     ImageView status_weather;
+    Button recommend_place;
 
     Handler handler=new Handler();
     Intent intent;
 
-    ArrayList<Pair<String, Pair<String, String>>> place_list;
     final String key="u8A%2B5H78lLJAQF4izW49VG32bMUGmjryumhVXumYzQrSKRHAaAraWH%2BiHa9TbwCgWZvq9zv%2FfqS2IoPAFQ57HQ%3D%3D";
     String url="http://apis.data.go.kr/1360000/VilageFcstInfoService/getVilageFcst";
     String gu, dong;
     String target_date, target_time;
 
     String date_today;
+    String nx, ny;
     int page;
     int del;
-    int nx;
-    int ny;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,42 +64,39 @@ public class WeatherActivity extends AppCompatActivity {
 
         getInfoFromIntent();
         initializeElement();
-        setDate();
-        temperature.setText(dong);
-        /*
-        setPage("20201125", "2010");
 
-        url+="?serviceKey="+key;
-        url+="&numOfRows=82";
-        url+="&pageNo="+page;
-        url+="&base_date="+date_today;
-        url+="&base_time=2030";
-        url+="&nx="+nx;
-        url+="&ny="+ny;
+        url += "?serviceKey=" + key;
+        url += "&numOfRows=82";
+        url += "&pageNo=" + 1;
+        url += "&base_date=" + date_today;
+        url += "&base_time=2030";
+        url += "&nx=" + nx;
+        url += "&ny=" + ny;
 
         new Thread(new MyThread()).start();
-
-         */
     }
 
     public void getInfoFromIntent() {
         intent = getIntent();
 
-        gu=intent.getStringExtra("gu");
-        dong=intent.getStringExtra("dong");
-        target_date=intent.getStringExtra("date");
-        target_time=intent.getStringExtra("time");
-        nx=intent.getIntExtra("nx", 55);
-        ny=intent.getIntExtra("ny", 127);
-        place_list=(ArrayList<Pair<String, Pair<String, String>>>)intent.getSerializableExtra("place_list");
-    }
+        gu = intent.getStringExtra("gu");
+        dong = intent.getStringExtra("dong");
+        target_date = intent.getStringExtra("date");
+        target_time = intent.getStringExtra("time");
+        nx = intent.getStringExtra("nx");
+        ny = intent.getStringExtra("ny");
 
+        setDate();
+        setPage(target_date, target_time);
+    }
 
     public void initializeElement() {
         temperature=findViewById(R.id.temperature);
         rain_probability=findViewById(R.id.rain_probability);
         rain_amount=findViewById(R.id.rain_amount);
         wind=findViewById(R.id.wind);
+        txt_weather_main=findViewById(R.id.txt_weather_main);
+
         status_weather=findViewById(R.id.status_weather);
     }
 
@@ -107,13 +104,14 @@ public class WeatherActivity extends AppCompatActivity {
         long now = System.currentTimeMillis();
         Date date = new Date(now);
         SimpleDateFormat sdfNow = new SimpleDateFormat("yyyyMMdd");
-        date_today = String.valueOf(Integer.parseInt(sdfNow.format(date))-1);
+        date_today = String.valueOf(Integer.parseInt(sdfNow.format(date)) - 1);
     }
 
     public void setPage(String d, String t) {
-        page=Integer.parseInt(d)-Integer.parseInt(date_today);
-        del=Integer.parseInt(t)/300;
+        page = Integer.parseInt(d) - Integer.parseInt(date_today);
+        del = Integer.parseInt(t) / 300;
     }
+
     public String getDataFromHTTP(String targetURL) {
         String document = "go";
 
@@ -125,6 +123,8 @@ public class WeatherActivity extends AppCompatActivity {
             httpConnect.setRequestProperty("Content-type", "application/xml");
 
             int responseCode = httpConnect.getResponseCode();
+
+            Log.e("abc123", "abc12345");
 
             if (responseCode == 200) {
                 BufferedReader buffRead = new BufferedReader(new InputStreamReader(httpConnect.getInputStream()));
@@ -140,17 +140,24 @@ public class WeatherActivity extends AppCompatActivity {
                 buffRead.close();
                 httpConnect.disconnect();
                 document = result.toString();
-
-                Log.e("doc", document);
-            }
-            else
+            } else
                 Log.e("Fatal", "Wrong HTTP Connection");
-        }
-        catch (Exception e) {
-            return "error1";
+        } catch (Exception e) {
+            Log.e("eeeee", e.toString());
         }
 
         return document;
+    }
+
+    public void recomClick(View view) {
+        if(view.getId()==R.id.recommend_place) {
+            intent=new Intent(this, RecommendActivity.class);
+            intent.putExtra("gu", gu);
+            intent.putExtra("dong", dong);
+            //intent.putExtra("weather", "r");
+
+            startActivity(intent);
+        }
     }
 
     class UIUpdate implements Runnable {
@@ -158,18 +165,17 @@ public class WeatherActivity extends AppCompatActivity {
 
         public UIUpdate(String result) {
             try {
-                String res="";
                 DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
                 factory.setIgnoringElementContentWhitespace(true);
                 DocumentBuilder builder = factory.newDocumentBuilder();
                 Document doc = builder.parse(new InputSource(new StringReader(result)));
 
-                NodeList nodeList=doc.getElementsByTagName("item");
-                for(int idx=0; idx<nodeList.getLength(); idx++) {
-                    String str=nodeList.item(idx).getChildNodes().item(2).getTextContent();
-                    String time_part=nodeList.item(idx).getChildNodes().item(4).getTextContent();
+                NodeList nodeList = doc.getElementsByTagName("item");
+                for (int idx = 0; idx < nodeList.getLength(); idx++) {
+                    String str = nodeList.item(idx).getChildNodes().item(2).getTextContent();
+                    String time_part = nodeList.item(idx).getChildNodes().item(4).getTextContent();
 
-                    if(Integer.parseInt(time_part) == del * 300) {
+                    if (Integer.parseInt(time_part) == del * 300) {
                         switch (str) {
                             case "POP":
                                 this.r_pro = nodeList.item(idx).getChildNodes().item(5).getTextContent();
@@ -189,18 +195,18 @@ public class WeatherActivity extends AppCompatActivity {
                         }
                     }
                 }
-            }
-            catch (Exception e){
+            } catch (Exception e) {
                 Log.e("parseError", e.getMessage());
             }
         }
 
         @Override
         public void run() {
-            temperature.setText(this.tem);
-            rain_amount.setText(this.r_amo);
-            rain_probability.setText(this.r_pro);
-            wind.setText(this.win);
+            txt_weather_main.setText("현재 " + dong + "의 날씨 정보");
+            temperature.append(this.tem+"℃");
+            rain_amount.append(this.r_amo+"mm");
+            rain_probability.append(this.r_pro+"%");
+            wind.append(this.win+"m/s");
 
             switch (sky) {
                 case "1":
@@ -218,7 +224,6 @@ public class WeatherActivity extends AppCompatActivity {
             }
         }
     }
-
     class MyThread implements Runnable {
         @Override
         public void run() {
