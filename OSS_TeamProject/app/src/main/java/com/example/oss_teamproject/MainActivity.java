@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     Intent intent;
 
     String gu="null", dong="null";
-    String date="", time="";
+    String date="20201127", time="";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

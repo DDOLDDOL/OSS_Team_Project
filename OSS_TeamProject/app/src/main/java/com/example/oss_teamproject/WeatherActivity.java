@@ -67,7 +67,7 @@ public class WeatherActivity extends AppCompatActivity {
 
         url += "?serviceKey=" + key;
         url += "&numOfRows=82";
-        url += "&pageNo=" + 1;
+        url += "&pageNo=" + page;
         url += "&base_date=" + date_today;
         url += "&base_time=2030";
         url += "&nx=" + nx;
@@ -76,7 +76,7 @@ public class WeatherActivity extends AppCompatActivity {
         try {
             Thread http_thread = new Thread(new MyThread());
             http_thread.start();
-      //      http_thread.join();
+        //    http_thread.join();
         }
         catch(Exception e) {
             Log.e("thr_err", e.toString());
@@ -109,7 +109,7 @@ public class WeatherActivity extends AppCompatActivity {
         status_weather=findViewById(R.id.status_weather);
         recommend_place=findViewById(R.id.recommend_place);
 
-        txt_weather_main.setText(gu + dong + "의 날씨 정보");
+        txt_weather_main.setText(gu + " " + dong + "의 날씨 정보");
     }
 
     public void setDate() {
