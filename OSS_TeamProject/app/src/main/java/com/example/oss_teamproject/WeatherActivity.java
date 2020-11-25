@@ -98,6 +98,8 @@ public class WeatherActivity extends AppCompatActivity {
         txt_weather_main=findViewById(R.id.txt_weather_main);
 
         status_weather=findViewById(R.id.status_weather);
+
+        txt_weather_main.setText("현재 " + dong + "의 날씨 정보"+page);
     }
 
     public void setDate() {
@@ -154,7 +156,7 @@ public class WeatherActivity extends AppCompatActivity {
             intent=new Intent(this, RecommendActivity.class);
             intent.putExtra("gu", gu);
             intent.putExtra("dong", dong);
-            //intent.putExtra("weather", "r");
+            intent.putExtra("weather", "r");
 
             startActivity(intent);
         }
@@ -202,7 +204,6 @@ public class WeatherActivity extends AppCompatActivity {
 
         @Override
         public void run() {
-            txt_weather_main.setText("현재 " + dong + "의 날씨 정보");
             temperature.append(this.tem+"℃");
             rain_amount.append(this.r_amo+"mm");
             rain_probability.append(this.r_pro+"%");

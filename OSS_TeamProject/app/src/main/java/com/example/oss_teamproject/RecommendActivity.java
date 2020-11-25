@@ -7,14 +7,17 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
 public class RecommendActivity extends AppCompatActivity {
     Button button1, button2, button3, button4;
+    TextView textView;
 
     Intent intent;
 
@@ -46,28 +49,32 @@ public class RecommendActivity extends AppCompatActivity {
         button2=findViewById(R.id.button2);
         button3=findViewById(R.id.button3);
         button4=findViewById(R.id.button4);
+
+        textView=findViewById(R.id.textView);
+        textView.setTextSize(30);
+        textView.setText(gu+" "+dong+" 추천 장소");
     }
 
     public void setButton() {
-        Cursor r_cur=MainActivity.db.rawQuery(
-                "select name, url from 동네csv_com where gu==\""+gu+"\" and dong==\""+dong+"\" and weather==\""+weather+"\"",
+        Cursor r_cur = MainActivity.db.rawQuery(
+                "select name, url from 동네csv_com where gu==\"" + gu + "\" and dong==\"" + dong + "\" and weather==\"" + weather + "\"",
                 null);
 
         r_cur.moveToFirst();
         button1.setText(r_cur.getString(r_cur.getColumnIndex("name")));
-        place_url[0]=r_cur.getString(r_cur.getColumnIndex("url"));
+        place_url[0] = r_cur.getString(r_cur.getColumnIndex("url"));
 
         r_cur.moveToNext();
         button2.setText(r_cur.getString(r_cur.getColumnIndex("name")));
-        place_url[1]=r_cur.getString(r_cur.getColumnIndex("url"));
+        place_url[1] = r_cur.getString(r_cur.getColumnIndex("url"));
 
         r_cur.moveToNext();
         button3.setText(r_cur.getString(r_cur.getColumnIndex("name")));
-        place_url[2]=r_cur.getString(r_cur.getColumnIndex("url"));
+        place_url[2] = r_cur.getString(r_cur.getColumnIndex("url"));
 
         r_cur.moveToNext();
         button4.setText(r_cur.getString(r_cur.getColumnIndex("name")));
-        place_url[3]=r_cur.getString(r_cur.getColumnIndex("url"));
+        place_url[3] = r_cur.getString(r_cur.getColumnIndex("url"));
     }
 
     public void onClick(View view) {
