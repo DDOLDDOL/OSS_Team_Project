@@ -120,7 +120,15 @@ public class WeatherActivity extends AppCompatActivity {
         status_weather=findViewById(R.id.status_weather);
         recommend_place=findViewById(R.id.recommend_place);
 
-        txt_weather_main.setText(gu + " " + dong + "의 날씨 정보");
+        int hour=Integer.parseInt(target_time)/100;
+
+        String minute="";
+        if(Integer.parseInt(target_time)%100<10)
+            minute+="0";
+        minute+=Integer.parseInt(target_time)%100;
+
+        txt_weather_main.setTextSize(30);
+        txt_weather_main.setText(hour + ":" + minute + " " + gu + " " + dong + " 날씨");
     }
 
     public void setDate() {

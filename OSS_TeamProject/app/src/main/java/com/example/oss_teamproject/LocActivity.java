@@ -66,6 +66,7 @@ public class LocActivity extends AppCompatActivity implements AdapterView.OnItem
 
         Cursor cur = MainActivity.db.rawQuery("select distinct dong from 동네csv_com where gu==\"" + g + "\"", null);
         cur.moveToFirst();
+        dong_list.add(cur.getString(cur.getColumnIndex("dong")));
 
         while (cur.moveToNext())
             dong_list.add(cur.getString(cur.getColumnIndex("dong")));
