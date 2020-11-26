@@ -1,5 +1,6 @@
 package com.example.oss_teamproject;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -9,10 +10,15 @@ import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
+import android.util.Pair;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.w3c.dom.Document;
@@ -29,16 +35,18 @@ import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 public class WeatherActivity extends AppCompatActivity {
-    TextView temperature, rain_probability, rain_amount, wind;
+    TextView temperature, rain_probability, rain_amount, wind, txt_weather_main;
+    ImageView status_weather;
+    Button recommend_place;
 
-    SQLiteDatabase db;
-    Handler handler=new Handler();
+    Handler handler;
     Intent intent;
 
     final String key="u8A%2B5H78lLJAQF4izW49VG32bMUGmjryumhVXumYzQrSKRHAaAraWH%2BiHa9TbwCgWZvq9zv%2FfqS2IoPAFQ57HQ%3D%3D";
@@ -47,74 +55,92 @@ public class WeatherActivity extends AppCompatActivity {
     String target_date, target_time;
 
     String date_today;
+    String nx, ny;
+    String weather;
     int page;
     int del;
-    int nx;
-    int ny;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_weather);
 
-        setInfo();
-        setAllView();
-        setDate();
-        setPage("20201125", "2010");
+        getInfoFromIntent();
+        initializeElement();
 
-        url+="?serviceKey="+key;
-        url+="&numOfRows=82";
-        url+="&pageNo="+page;
-        url+="&base_date="+date_today;
-        url+="&base_time=2030";
-        url+="&nx="+nx;
-        url+="&ny="+ny;
-
-        DBHelper helper=new DBHelper(this);
-        db=helper.getReadableDatabase();
+        url += "?serviceKey=" + key;
+        url += "&numOfRows=82";
+        url += "&pageNo=" + page;
+        url += "&base_date=" + date_today;
+        url += "&base_time=2030";
+        url += "&nx=" + nx;
+        url += "&ny=" + ny;
 
         try {
-            Cursor c = db.rawQuery("select field5 from 격자csv where field4 == \"종로구\"", null);
-            c.moveToFirst();
-            String str="1";
-            while (c.moveToNext())
-                str+=c.getString(c.getColumnIndex("field5"));
-            txt.setText(str);
+            Thread http_thread = new Thread(new MyThread());
+            http_thread.start();
+            http_thread.join();
         }
-        catch(Exception e) {txt.setText(e.toString());}
-
-        new Thread(new MyThread()).start();
+        catch(Exception e) {
+            Log.e("thr_err", e.toString());
+        }
     }
 
-    public void setAllView() {
+    public void getInfoFromIntent() {
+        intent = getIntent();
+
+        gu = intent.getStringExtra("gu");
+        dong = intent.getStringExtra("dong");
+        target_date = intent.getStringExtra("date");
+        target_time = intent.getStringExtra("time");
+        nx = intent.getStringExtra("nx");
+        ny = intent.getStringExtra("ny");
+
+        setDate();
+        setPage(target_date, target_time);
+    }
+
+    public void initializeElement() {
+        handler=new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                if (msg.what == 0)
+                    weather = "s";
+                else
+                    weather = "r";
+            }
+        };
+
         temperature=findViewById(R.id.temperature);
         rain_probability=findViewById(R.id.rain_probability);
         rain_amount=findViewById(R.id.rain_amount);
         wind=findViewById(R.id.wind);
+        txt_weather_main=findViewById(R.id.txt_weather_main);
+
+        status_weather=findViewById(R.id.status_weather);
+        recommend_place=findViewById(R.id.recommend_place);
+
+        int hour=Integer.parseInt(target_time)/100;
+
+        String minute="";
+        if(Integer.parseInt(target_time)%100<10)
+            minute+="0";
+        minute+=Integer.parseInt(target_time)%100;
+
+        txt_weather_main.setTextSize(30);
+        txt_weather_main.setText(hour + ":" + minute + " " + gu + " " + dong + " 날씨");
     }
 
     public void setDate() {
         long now = System.currentTimeMillis();
         Date date = new Date(now);
         SimpleDateFormat sdfNow = new SimpleDateFormat("yyyyMMdd");
-        date_today = String.valueOf(Integer.parseInt(sdfNow.format(date))-1);
+        date_today = String.valueOf(Integer.parseInt(sdfNow.format(date)) - 1);
     }
 
     public void setPage(String d, String t) {
-        page=Integer.parseInt(d)-Integer.parseInt(date_today);
-        del=Integer.parseInt(t)/300;
-    }
-
-    public void setInfo() {
-        intent = getIntent();
-        gu=intent.getStringExtra("gu");
-        dong=intent.getStringExtra("dong");
-        target_date=intent.getStringExtra("date");
-        target_time=intent.getStringExtra("time");
-        nx=intent.getIntExtra("nx", 55);
-        ny=intent.getIntExtra("ny", 127);
-
-
+        page = Integer.parseInt(d) - Integer.parseInt(date_today);
+        del = Integer.parseInt(t) / 300;
     }
 
     public String getDataFromHTTP(String targetURL) {
@@ -143,36 +169,43 @@ public class WeatherActivity extends AppCompatActivity {
                 buffRead.close();
                 httpConnect.disconnect();
                 document = result.toString();
-
-                Log.e("doc", document);
-            }
-            else
+            } else
                 Log.e("Fatal", "Wrong HTTP Connection");
-        }
-        catch (Exception e) {
-            return "error1";
+        } catch (Exception e) {
+            Log.e("eeeee", e.toString());
         }
 
         return document;
     }
 
+    public void recomClick(View view) {
+        if(view.getId()==R.id.recommend_place) {
+            intent=new Intent(this, RecommendActivity.class);
+            intent.putExtra("gu", gu);
+            intent.putExtra("dong", dong);
+            intent.putExtra("weather", weather);
+
+            startActivity(intent);
+        }
+    }
+
     class UIUpdate implements Runnable {
         String tem, r_pro, r_amo, win, sky;
+        Message msg;
 
         public UIUpdate(String result) {
             try {
-                String res="";
                 DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
                 factory.setIgnoringElementContentWhitespace(true);
                 DocumentBuilder builder = factory.newDocumentBuilder();
                 Document doc = builder.parse(new InputSource(new StringReader(result)));
 
-                NodeList nodeList=doc.getElementsByTagName("item");
-                for(int idx=0; idx<nodeList.getLength(); idx++) {
-                    String str=nodeList.item(idx).getChildNodes().item(2).getTextContent();
-                    String time_part=nodeList.item(idx).getChildNodes().item(4).getTextContent();
+                NodeList nodeList = doc.getElementsByTagName("item");
+                for (int idx = 0; idx < nodeList.getLength(); idx++) {
+                    String str = nodeList.item(idx).getChildNodes().item(2).getTextContent();
+                    String time_part = nodeList.item(idx).getChildNodes().item(4).getTextContent();
 
-                    if(Integer.parseInt(time_part) == del * 300) {
+                    if (Integer.parseInt(time_part) == del * 300) {
                         switch (str) {
                             case "POP":
                                 this.r_pro = nodeList.item(idx).getChildNodes().item(5).getTextContent();
@@ -192,33 +225,46 @@ public class WeatherActivity extends AppCompatActivity {
                         }
                     }
                 }
+
+                sendMsgToMainThread(this.r_pro, this.r_amo);
             }
-            catch (Exception e){
+            catch (Exception e) {
                 Log.e("parseError", e.getMessage());
             }
         }
 
         @Override
         public void run() {
-            temperature.setText(this.tem);
-            rain_amount.setText(this.r_amo);
-            rain_probability.setText(this.r_pro);
-            wind.setText(this.win);
+            temperature.append(this.tem+"℃");
+            rain_amount.append(this.r_amo+"mm");
+            rain_probability.append(this.r_pro+"%");
+            wind.append(this.win+"m/s");
 
             switch (sky) {
                 case "1":
                     // 맑음
-
+                    status_weather.setImageResource(R.drawable.sunny);
                     break;
                 case "3":
                     // 구름많음
-
+                    status_weather.setImageResource(R.drawable.sun_cloud);
                     break;
                 case "4":
                     //흐림
-
+                    status_weather.setImageResource(R.drawable.cloudy);
                     break;
             }
+        }
+
+        private void sendMsgToMainThread(String rp, String ra) {
+            msg=handler.obtainMessage();
+
+            if (Integer.parseInt(rp) >= 60 && Double.parseDouble(ra) >= 0.5)
+                msg.what=1;
+            else
+                msg.what=0;
+
+            handler.sendMessage(msg);
         }
     }
 
@@ -226,59 +272,6 @@ public class WeatherActivity extends AppCompatActivity {
         @Override
         public void run() {
             handler.post(new UIUpdate(getDataFromHTTP(url)));
-        }
-    }
-
-    class DBHelper extends SQLiteOpenHelper {
-        private String DB_PATH = "";
-        private final String DB_NAME = "db1.db";
-
-        public DBHelper(@Nullable Context context) {
-            super(context, "db1.db", null, 1);
-
-            DB_PATH += "/data/data/" + context.getPackageName() + "/databases/";
-            this.setDB(context);
-        }
-
-        @Override
-        public void onCreate(SQLiteDatabase sqLiteDatabase) {
-        }
-
-        @Override
-        public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-
-        }
-
-        public void setDB(Context ctx) {
-            File folder = new File(DB_PATH);
-            if (!folder.exists())
-                folder.mkdirs();
-
-            AssetManager assetManager = ctx.getResources().getAssets();
-            File outfile = new File(DB_PATH+DB_NAME);
-
-            InputStream is = null;
-            FileOutputStream fo = null;
-            long filesize = 0;
-
-            try {
-                is = assetManager.open("db1.db", AssetManager.ACCESS_BUFFER);
-                filesize = is.available();
-
-                if (outfile.length() <= 0) {
-                    byte[] tempdata = new byte[(int) filesize];
-                    is.read(tempdata);
-                    is.close();
-                    txt.setText(tempdata.length+"g");
-                    outfile.createNewFile();
-                    fo = new FileOutputStream(outfile);
-                    fo.write(tempdata);
-                    fo.close();
-                }
-            }
-            catch (IOException e) { txt.setText("error");}
-
-            //query
         }
     }
 }

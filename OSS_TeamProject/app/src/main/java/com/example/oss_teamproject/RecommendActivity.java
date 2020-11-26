@@ -3,78 +3,97 @@ package com.example.oss_teamproject;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
 public class RecommendActivity extends AppCompatActivity {
     Button button1, button2, button3, button4;
+    TextView textView;
+
     Intent intent;
 
-    ArrayList<Pair<String, String>> recommend_list;
+    String gu, dong, weather;
+    String[] place_url;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recommend);
 
-        setReccomendList();
+        getDateFromIntent();
         initializeElement();
+        setButton();
     }
 
-    public void setReccomendList() {
+    public void getDateFromIntent() {
         intent=getIntent();
 
-        recommend_list.add(new Pair(intent.getStringExtra("place1"), intent.getStringExtra("url1")));
-        recommend_list.add(new Pair(intent.getStringExtra("place2"), intent.getStringExtra("url2")));
-        recommend_list.add(new Pair(intent.getStringExtra("place3"), intent.getStringExtra("url3")));
-        recommend_list.add(new Pair(intent.getStringExtra("place4"), intent.getStringExtra("url4")));
+        gu=intent.getStringExtra("gu");
+        dong=intent.getStringExtra("dong");
+        weather=intent.getStringExtra("weather");
     }
 
-    private void initializeElement() {
-        recommend_list=new ArrayList<>();
+    public void initializeElement() {
+        place_url=new String[4];
 
         button1=findViewById(R.id.button1);
         button2=findViewById(R.id.button2);
         button3=findViewById(R.id.button3);
         button4=findViewById(R.id.button4);
 
-        button1.setText(recommend_list.get(0).first);
-        button2.setText(recommend_list.get(1).first);
-        button3.setText(recommend_list.get(2).first);
-        button4.setText(recommend_list.get(3).first);
+        textView=findViewById(R.id.textView);
+        textView.setTextSize(30);
+        textView.setText(gu+" "+dong+" 추천 장소");
+    }
+
+    public void setButton() {
+        Cursor r_cur = MainActivity.db.rawQuery(
+                "select name, url from 동네csv_com where gu==\"" + gu + "\" and dong==\"" + dong + "\" and weather==\"" + weather + "\"",
+                null);
+
+        r_cur.moveToFirst();
+        button1.setText(r_cur.getString(r_cur.getColumnIndex("name")));
+        place_url[0] = r_cur.getString(r_cur.getColumnIndex("url"));
+
+        r_cur.moveToNext();
+        button2.setText(r_cur.getString(r_cur.getColumnIndex("name")));
+        place_url[1] = r_cur.getString(r_cur.getColumnIndex("url"));
+
+        r_cur.moveToNext();
+        button3.setText(r_cur.getString(r_cur.getColumnIndex("name")));
+        place_url[2] = r_cur.getString(r_cur.getColumnIndex("url"));
+
+        r_cur.moveToNext();
+        button4.setText(r_cur.getString(r_cur.getColumnIndex("name")));
+        place_url[3] = r_cur.getString(r_cur.getColumnIndex("url"));
     }
 
     public void onClick(View view) {
         Intent new_intent;
-        String place_url;
 
         if(view==button1) {
-            place_url=recommend_list.get(0).second;
-
-            new_intent=new Intent(Intent.ACTION_VIEW, Uri.parse(place_url));
+            new_intent=new Intent(Intent.ACTION_VIEW, Uri.parse(place_url[0]));
             startActivity(new_intent);
         }
         else if(view==button2) {
-            place_url=recommend_list.get(1).second;
-
-            new_intent=new Intent(Intent.ACTION_VIEW, Uri.parse(place_url));
+            new_intent=new Intent(Intent.ACTION_VIEW, Uri.parse(place_url[1]));
             startActivity(new_intent);
         }
         else if(view==button3) {
-            place_url=recommend_list.get(2).second;
-
-            new_intent=new Intent(Intent.ACTION_VIEW, Uri.parse(place_url));
+            new_intent=new Intent(Intent.ACTION_VIEW, Uri.parse(place_url[2]));
             startActivity(new_intent);
         }
         else if(view==button4) {
-            place_url=recommend_list.get(3).second;
-
-            new_intent=new Intent(Intent.ACTION_VIEW, Uri.parse(place_url));
+            new_intent=new Intent(Intent.ACTION_VIEW, Uri.parse(place_url[3]));
             startActivity(new_intent);
         }
     }

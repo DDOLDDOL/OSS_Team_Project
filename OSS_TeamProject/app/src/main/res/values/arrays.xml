@@ -27,11 +27,4 @@
         <item>중구</item>
         <item>중랑구</item>
     </array>
-
-    <array name="dong_array">
-        <item>sinsa</item>
-        <item>nonhyoen</item>
-        <item>apgujeong</item>
-        <item>cheongdam</item>
-    </array>
 </resources>
