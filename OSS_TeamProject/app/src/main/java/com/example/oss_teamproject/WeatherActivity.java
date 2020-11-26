@@ -70,12 +70,16 @@ public class WeatherActivity extends AppCompatActivity {
 
         url += "?serviceKey=" + key;
         url += "&numOfRows=82";
-        url += "&pageNo=" + page;
-        url += "&base_date=" + date_today;
+        url += "&pageNo=1";
+        url += "&base_date=20201126";
         url += "&base_time=2030";
         url += "&nx=" + nx;
         url += "&ny=" + ny;
 
+        txt_weather_main.setTextSize(15);
+        txt_weather_main.setText(url);
+
+        /*
         try {
             Thread http_thread = new Thread(new MyThread());
             http_thread.start();
@@ -84,6 +88,8 @@ public class WeatherActivity extends AppCompatActivity {
         catch(Exception e) {
             Log.e("thr_err", e.toString());
         }
+
+         */
     }
 
     public void getInfoFromIntent() {
