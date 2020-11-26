@@ -75,11 +75,7 @@ public class WeatherActivity extends AppCompatActivity {
         url += "&base_time=2030";
         url += "&nx=" + nx;
         url += "&ny=" + ny;
-
-        txt_weather_main.setTextSize(15);
-        txt_weather_main.setText(url);
-
-        /*
+        
         try {
             Thread http_thread = new Thread(new MyThread());
             http_thread.start();
@@ -88,8 +84,6 @@ public class WeatherActivity extends AppCompatActivity {
         catch(Exception e) {
             Log.e("thr_err", e.toString());
         }
-
-         */
     }
 
     public void getInfoFromIntent() {
