@@ -70,12 +70,12 @@ public class WeatherActivity extends AppCompatActivity {
 
         url += "?serviceKey=" + key;
         url += "&numOfRows=82";
-        url += "&pageNo=" + page;
-        url += "&base_date=" + date_today;
+        url += "&pageNo=1";
+        url += "&base_date=20201126";
         url += "&base_time=2030";
         url += "&nx=" + nx;
         url += "&ny=" + ny;
-
+        
         try {
             Thread http_thread = new Thread(new MyThread());
             http_thread.start();
