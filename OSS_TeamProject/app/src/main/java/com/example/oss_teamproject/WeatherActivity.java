@@ -1,5 +1,6 @@
 package com.example.oss_teamproject;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -12,6 +13,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.util.Pair;
 import android.view.View;
@@ -44,7 +46,7 @@ public class WeatherActivity extends AppCompatActivity {
     ImageView status_weather;
     Button recommend_place;
 
-    Handler handler=new Handler();
+    Handler handler;
     Intent intent;
 
     final String key="u8A%2B5H78lLJAQF4izW49VG32bMUGmjryumhVXumYzQrSKRHAaAraWH%2BiHa9TbwCgWZvq9zv%2FfqS2IoPAFQ57HQ%3D%3D";
@@ -54,6 +56,7 @@ public class WeatherActivity extends AppCompatActivity {
 
     String date_today;
     String nx, ny;
+    String weather;
     int page;
     int del;
 
@@ -76,13 +79,11 @@ public class WeatherActivity extends AppCompatActivity {
         try {
             Thread http_thread = new Thread(new MyThread());
             http_thread.start();
-        //    http_thread.join();
+            http_thread.join();
         }
         catch(Exception e) {
             Log.e("thr_err", e.toString());
         }
-
-        recommend_place.setEnabled(true);
     }
 
     public void getInfoFromIntent() {
@@ -100,6 +101,16 @@ public class WeatherActivity extends AppCompatActivity {
     }
 
     public void initializeElement() {
+        handler=new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                if (msg.what == 0)
+                    weather = "s";
+                else
+                    weather = "r";
+            }
+        };
+
         temperature=findViewById(R.id.temperature);
         rain_probability=findViewById(R.id.rain_probability);
         rain_amount=findViewById(R.id.rain_amount);
@@ -164,7 +175,7 @@ public class WeatherActivity extends AppCompatActivity {
             intent=new Intent(this, RecommendActivity.class);
             intent.putExtra("gu", gu);
             intent.putExtra("dong", dong);
-            intent.putExtra("weather", "r");
+            intent.putExtra("weather", weather);
 
             startActivity(intent);
         }
@@ -172,7 +183,7 @@ public class WeatherActivity extends AppCompatActivity {
 
     class UIUpdate implements Runnable {
         String tem, r_pro, r_amo, win, sky;
-        String weather;
+        Message msg;
 
         public UIUpdate(String result) {
             try {
@@ -206,7 +217,10 @@ public class WeatherActivity extends AppCompatActivity {
                         }
                     }
                 }
-            } catch (Exception e) {
+
+                sendMsgToMainThread(this.r_pro, this.r_amo);
+            }
+            catch (Exception e) {
                 Log.e("parseError", e.getMessage());
             }
         }
@@ -232,19 +246,20 @@ public class WeatherActivity extends AppCompatActivity {
                     status_weather.setImageResource(R.drawable.cloudy);
                     break;
             }
-
-            if(Integer.parseInt(r_pro) >= 60 && Double.parseDouble(r_amo) >= 0.5) {
-                status_weather.setImageResource(R.drawable.rainy);
-                weather = "r";
-            }
-            else
-                weather = "s";
         }
 
-        public String getWeather() {
-            return weather;
+        private void sendMsgToMainThread(String rp, String ra) {
+            msg=handler.obtainMessage();
+
+            if (Integer.parseInt(rp) >= 60 && Double.parseDouble(ra) >= 0.5)
+                msg.what=1;
+            else
+                msg.what=0;
+
+            handler.sendMessage(msg);
         }
     }
+
     class MyThread implements Runnable {
         @Override
         public void run() {

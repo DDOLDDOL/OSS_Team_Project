@@ -29,6 +29,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
     Button btn_set_time, btn_set_place, btn_ok;
@@ -63,15 +64,16 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
                     date=String.valueOf(year);
+
                     if(monthOfYear<10)
                         date+="0";
-                    date+=String.valueOf(monthOfYear);
+                    date+=String.valueOf(monthOfYear+1);
+
                     if(dayOfMonth<10)
                         date+="0";
                     date+=String.valueOf(dayOfMonth);
-                    btn_set_time.setText(monthOfYear);
                 }
-            }, 2020, 11, 1);
+            }, 2020, 10, 26);
 
             d_dialog.show();
 
@@ -84,12 +86,17 @@ public class MainActivity extends AppCompatActivity {
                     if(hourOfDay<10)
                         time="0";
                     time+=String.valueOf(hourOfDay);
+
                     if(minute<10)
-                        time="0";
+                        time+="0";
                     time+=String.valueOf(minute);
 
                     btn_set_time.setTextSize(40);
-                    btn_set_time.setText(hourOfDay+":"+minute);
+
+                    if(minute<10)
+                        btn_set_time.setText(hourOfDay+":0"+minute);
+                    else
+                        btn_set_time.setText(hourOfDay+":"+minute);
                 }
             }, 12, 00, true);
 
