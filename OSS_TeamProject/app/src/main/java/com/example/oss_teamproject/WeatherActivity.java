@@ -70,12 +70,12 @@ public class WeatherActivity extends AppCompatActivity {
 
         url += "?serviceKey=" + key;
         url += "&numOfRows=82";
-        url += "&pageNo=1";
-        url += "&base_date=20201126";
+        url += "&pageNo="+page;
+        url += "&base_date="+date_today;
         url += "&base_time=2030";
         url += "&nx=" + nx;
         url += "&ny=" + ny;
-        
+
         try {
             Thread http_thread = new Thread(new MyThread());
             http_thread.start();
@@ -135,11 +135,19 @@ public class WeatherActivity extends AppCompatActivity {
         long now = System.currentTimeMillis();
         Date date = new Date(now);
         SimpleDateFormat sdfNow = new SimpleDateFormat("yyyyMMdd");
-        date_today = String.valueOf(Integer.parseInt(sdfNow.format(date)) - 1);
+
+        if(Integer.parseInt(target_time)>=2030)
+            date_today=sdfNow.format(date);
+        else
+            date_today = String.valueOf(Integer.parseInt(sdfNow.format(date)) - 1);
     }
 
     public void setPage(String d, String t) {
         page = Integer.parseInt(d) - Integer.parseInt(date_today);
+
+        if(page<1)
+            page=1;
+
         del = Integer.parseInt(t) / 300;
     }
 
@@ -210,9 +218,6 @@ public class WeatherActivity extends AppCompatActivity {
                             case "POP":
                                 this.r_pro = nodeList.item(idx).getChildNodes().item(5).getTextContent();
                                 break;
-                            case "R06":
-                                this.r_amo = nodeList.item(idx).getChildNodes().item(5).getTextContent();
-                                break;
                             case "T3H":
                                 this.tem = nodeList.item(idx).getChildNodes().item(5).getTextContent();
                                 break;
@@ -221,6 +226,14 @@ public class WeatherActivity extends AppCompatActivity {
                                 break;
                             case "WSD":
                                 this.win = nodeList.item(idx).getChildNodes().item(5).getTextContent();
+                                break;
+                        }
+                    }
+
+                    if ((Integer.parseInt(time_part)/600)*600 == (del/2) * 600) {
+                        switch (str) {
+                            case "R06":
+                                this.r_amo = nodeList.item(idx).getChildNodes().item(5).getTextContent();
                                 break;
                         }
                     }

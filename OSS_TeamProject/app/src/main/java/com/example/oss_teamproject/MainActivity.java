@@ -59,24 +59,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void onClick(View view) {
         if(view==btn_set_time) {
-            DatePickerDialog d_dialog = new DatePickerDialog(this,  new DatePickerDialog.OnDateSetListener()
-            {
-                @Override
-                public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                    date=String.valueOf(year);
-
-                    if(monthOfYear<10)
-                        date+="0";
-                    date+=String.valueOf(monthOfYear+1);
-
-                    if(dayOfMonth<10)
-                        date+="0";
-                    date+=String.valueOf(dayOfMonth);
-                }
-            }, 2020, 10, 26);
-
-            d_dialog.show();
-
             TimePickerDialog t_dialog = new TimePickerDialog(
                     this, android.R.style.Theme_Holo_Light_Dialog,  new TimePickerDialog.OnTimeSetListener()
             {
@@ -99,8 +81,25 @@ public class MainActivity extends AppCompatActivity {
                         btn_set_time.setText(hourOfDay+":"+minute);
                 }
             }, 12, 00, true);
-
             t_dialog.show();
+
+            DatePickerDialog d_dialog = new DatePickerDialog(this,  new DatePickerDialog.OnDateSetListener()
+            {
+                @Override
+                public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                    date=String.valueOf(year);
+
+                    if(monthOfYear<10)
+                        date+="0";
+                    date+=String.valueOf(monthOfYear+1);
+
+                    if(dayOfMonth<10)
+                        date+="0";
+                    date+=String.valueOf(dayOfMonth);
+                }
+            }, 2020, 10, 26);
+
+            d_dialog.show();
         }
         else if(view==btn_set_place) {
             intent=new Intent(this, LocActivity.class);
